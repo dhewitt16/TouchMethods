@@ -1,0 +1,125 @@
+Proposed EEG Analysis Pipeline – CE Data
+
+Brushing Data
+
+Preparation and preprocessing  
+1.	Get all data into one folder containing individual subject folders  
+a.	Suggested: …/Data/TouchStudy/CE/  
+b.	Rename all subject files in the form ‘T1_[1-number of subjects]’  
+2.	Open MATLAB, start EEGLAB if not already in path  
+3.	Import data into EEGLAB, save as a .set file – using ImportFilesSA.m  
+a.	Then rename all .set files to include the block condition in the name based on the trials specified in .csv files from psychopy: [T1_[SUBJECTID]_[CE/UK]_SLOW_ARM.set, … SLOW_PALM, FAST_ARM, FAST_PALM]  
+
+<img width="276" alt="Screenshot 2024-02-26 at 07 05 52" src="https://github.com/dhewitt16/TouchStudy/assets/122755414/96164de2-5b8b-4e1f-a252-5967660e3ea4">
+
+5.	Epoch into trials and concatenate conditions into one file – using EpochFiles_S2.m  
+a.	Loads file, finds the stimulus onset trigger (S  1) and splits into trials of -2.5 to +5.5 around that trigger  
+b.	Removes the practice trials (1st 10 trials for Study 2)  
+c.	Concatenate multiple blocks from same participant into one data set  
+d.	Using combined dataset, rereference to common average (may need a channel location file here - if so, need one to be made)  
+e.	Filter the data: high pass 0.1 Hz, low pass 70 Hz, notch 48-52 Hz (or equivalent 2Hz window either side of mains line noise) – check this is correctly done as the filtering has changed on EEGLAB  
+i.	Currently kept 50 Hz line noise – can also use CleanLineNoise instead if there are any variations
+f.	Save all as 1 combined .set file for each participant: T1_[SUBJECTID]_[CE/UK]_allbrush.set  
+
+7.	Data cleaning – semi-automatic pipeline here  
+a.	Eye blink removal – ICA  
+i.	Plot > Component activations (scroll) > set threshold to 40. Identify components showing blinks or horizontal eye movements (usually in the first 5).  
+ii.	Can be checked with Plot > Component activations > in 2D > Components [1:10] and confirmed with Tools > Classify components using ICLabel > Label components  
+iii.	Tools > Remove components from data > specify components to remove (e.g., [1:3], [1], [1, 3])  
+b.	Open the data and look at it (Plot > Channel data (scroll) > set threshold to 65)  
+i.	 See if any electrodes need to be interpolated due to artefactual signal which affects large proportion of trials, e.g. if there is electrode pop or it is picking up lots of noise. Interpolate maximum of 10% of electrodes (6 with 64 channel system)
+c. Save all as 1 combined .set file for each participant: T1_[SUBJECTID]_[CE/UK]_allbrush_ica.set  
+
+--- This section runs data cleaning in parallel to get files for both ERP and ERD analysis.  
+A better method could be used but this is the one we have used so far.  
+
+- ERD File -  
+1. Load T1_[SUBJECTID]_[CE/UK]_allbrush_ica.set file  
+2.  Filter the data: high pass 1 Hz, low pass 70 Hz  
+3. Artifact rejection  
+i. Legacy rejection method (File > Preferences > If set, show all menu items from previous EEGLAB versions > tick > Ok)  
+ii.	Tools > Reject data epochs > Reject using all methods:  
+4.	Find abnormal values: upper limit of 125 uV, lower limit -125 uV, time -2.5,5.496. Calc/Plot > Update Marks.  
+a. If many trials are rejected (>25% total trials), can also try 150 or 175 as the values.  
+b. If too many trials are still rejected, restrict the time limit to -2.5,3.5 as this is the main ERD window of interest.  
+5.	Find improbable data: Single channel limit 7 SD, All channel limit 7 SD. Calculate. If very high, some electrodes may need interpolating – check.  
+6.	Scroll data > check what has been marked and see if any additional blocks need to be marked.  
+a. If some of the marked trials contain alpha activity or something that doesn't appear to be noise, unmark it.
+b. In general, we want to mark trials showing large muscular or movement artefacts, particularly those where there is a difference between baseline and trial.  
+c. Click on block to mark or unmark.  
+7.	Reject marked trials.  
+8. Save file: T1_[SUBJECTID]_[CE/UK]_allbrush_ica_erd_cleaned.set  
+
+- ERP Brushing Offset File -  
+1. Load T1_[SUBJECTID]_[CE/UK]_allbrush_ica.set file  
+2. Filter the data: high pass 0.1 Hz, low pass 30 Hz  
+3. Artifact rejection  
+i.	Legacy rejection method (File > Preferences > If set, show all menu items from previous EEGLAB versions > tick > Ok)  
+ii.	Tools > Reject data epochs > Reject using all methods:  
+4.	Find abnormal values: upper limit of 125 uV, lower limit -125 uV, time 2:4 (i.e., both positive, +2 seconds after brushing onset to +4 seconds after). Calc/Plot > Update Marks.  
+a. If many trials are rejected (>25% total trials), can also try 150 or 175 as the values.  
+b. If too many trials are still rejected, restrict the time limit to -2.5,3.5 as this is the main ERD window of interest.  
+5.	Find improbable data: Single channel limit 7 SD, All channel limit 7 SD. Calculate. If very high, some electrodes may need interpolating – check. It's worth noting that this will find things through the whole trial, which may be too strict for the time window we are going to trim this data into.
+6.	Scroll data > check what has been marked and see if any additional blocks need to be marked.  
+a. If some of the marked trials contain alpha activity or something that doesn't appear to be noise, unmark it.
+b. In general, we want to mark trials showing large muscular or movement artefacts, particularly those where there is a difference between baseline and trial.  
+c. Click on block to mark or unmark.  
+7.	Reject marked trials.  
+8. Save file: T1_[SUBJECTID]_[CE/UK]_allbrush_ica_erp_cleaned.set  
+
+- ERP Brushing Offset Ultralate File -  
+1. Load previously cleaned ERP file: T1_[SUBJECTID]_[CE/UK]_allbrush_ica_erp_cleaned.set   
+2. Filter the data: high pass 0.1 Hz, low pass 30 Hz  
+3. Artifact rejection  
+i.	Legacy rejection method (File > Preferences > If set, show all menu items from previous EEGLAB versions > tick > Ok)  
+ii.	Tools > Reject data epochs > Reject using all methods:  
+4.	Find abnormal values: upper limit of 125 uV, lower limit -125 uV, time 4:5 (to cover the 1 second after the previous ERP file and look at long-latency ERPs). Calc/Plot > Update Marks.  
+a. If many trials are rejected (>25% total trials), can also try 150 or 175 as the values.  
+b. If too many trials are still rejected, restrict the time limit to -2.5,3.5 as this is the main ERD window of interest.  
+5.	Find improbable data: Single channel limit 7 SD, All channel limit 7 SD. Calculate. If very high, some electrodes may need interpolating – check. It's worth noting that this will find things through the whole trial, which may be too strict for the time window we are going to trim this data into.
+6.	Scroll data > check what has been marked and see if any additional blocks need to be marked.  
+a. If some of the marked trials contain alpha activity or something that doesn't appear to be noise, unmark it.
+b. In general, we want to mark trials showing large muscular or movement artefacts, particularly those where there is a difference between baseline and trial.  
+c. Click on block to mark or unmark.  
+7.	Reject marked trials.  
+8. Save file: T1_[SUBJECTID]_[CE/UK]_allbrush_ica_erp_long_cleaned.set
+   
+--- Preprocessing complete – proceed to analysis. ---  
+
+Frequency Analysis
+1.	Using BrushSpa.m \
+a.	Convert from EEGLAB to Fieldtrip (make sure fieldtrip is in the path) \
+b.	Fieldtrip loads data into array of [participants x electrodes x frequency components x time x blocks]\
+c.	Fieldtrip gets all the trials for each block, and gets the power within each frequency band (within the foi specified – 1 to 70 Hz) within the trial for the specified time window of interest (currently -2.5 to 5.5 around stimulus onset)\
+d.	Relative power in the band calculated by specifying the baseline interval (2 to -1), and computing relative change versus the trial – baseline correction not carried out yet\
+e.	ERD is computed manually after power spectral decomposition, by subtracting baseline interval from the rest of the trial and multiplying by 100\
+f.	Relative power for all conditions saved in G struct, with separate structs for each condition – G.ERD[cond].powspctrm 63 (els) x 70 (freq) x 61 (time) \
+g.	Figures plotted if fplot.draw = 1
+2.	Using BrushStat.m – use this to make figures and export permutation results for statistics (legacy analysis method) \
+a.	Specify participants for analysis\
+b.	Select frequency band of interest – script needs to be run individually for each frequency band\
+c.	Modify the epochTime if necessary (cfg.epochTime) – currently 0.5 to 4.9 to avoid sharp changes at the start and end of trial\
+d.	Select if statistics should be computed. 1 = yes, 0 = no.\
+e.	Script will load all participant’s data and insert this into one D struct. This is saved as a .mat file when the script is ran, so next time it is ran (with the same number of participants) the data will be loaded from the file to save time\
+f.	Topographic maps (and a blank electrode map) are created for the specified frequency band and epoch time window.\
+g.	Time frequency figures are created for the specific electrode/s of interest\
+h.	If statistics are requested, a permutation analysis will be computed across all electrodes, for the specific frequency band and time window. - This is not the method being used for analysis currently though.\
+i.	Significant electrodes are shown in a topographic map.\
+ii.	Can use this permutation result to specify which electrodes should be exported to file, for further analysis.
+3. Using BrushERDExport.m - use this to export ERD from all electrodes and frequency bands within the epoch and bands chosen \
+a. Script will load all participants data from the D struct (if it already exists - otherwise it will be computed)\
+b. Big export table will be created to hold the subject-level data for all conditions in each band and electrode - Participants x FreqBand (first value 4, 8 or 16) x FreqBandName x
+Electrode (63) x ElectrodeName x SlowOther x SlowSelf x FastOther x FastSelf\
+c. Need to confirm that the electrode order is correct from the electrode montage -> can check by opening the chanlocs file\
+d. Export file will be saved in the current directory.
+
+Resting Data (Not yet analysed)
+
+1.	This is at the end of each block of trials – roughly 3 mins per participant
+2.	Data already imported to EEGLAB from original set file for each condition
+3.	New prep loop to find last block ended trigger (S  2), and then save from this trigger until the end of the data. Concatenate this block with all other rest files.
+4.	Same preprocessing as before
+5.	May need to trim blocks to be the same length due to slight differences in duration
+6.	Compute power spectra (different method to calculate absolute power)
+7.	Statistics – permutation across electrodes and conditions separately for each frequency band with statcond.m
+
