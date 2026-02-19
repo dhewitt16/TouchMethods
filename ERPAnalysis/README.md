@@ -1,8 +1,8 @@
-## ERP Analysis
+# ERP Analysis
 
 Here we demonstrate a method to analyse event-related potentials following the offset of dynamic touch. The following preprocessing steps can be followed. In our example, this has been run after TF Analysis (though the instructions can be followed if running ERP analysis only).
 
-# Importing the data into EEGLAB
+## Importing the data into EEGLAB
 1.	Run Import_Files_S2.m to get .set files if not already run
 •	(this should have been done from ERD analysis – no need to run again if so)
 2.	Run 1_EpochFiles_ERP.m
@@ -10,7 +10,7 @@ Here we demonstrate a method to analyse event-related potentials following the o
 o	Change the directories for EEGLAB and the data directory to match those on the computer being used
 o	If there are any issues with the script, run EEGLAB first
 
-# Data cleaning
+## Data cleaning
 3.	Run 2_AddICAWeights.m
 •	This presumes that the ERD analysis has been run already. If not, or if different decomposition is required, uncomment to add the ICA step in the previous script.
 •	The script loads the set file from the ERD analysis after ICA decomposition. The files are loaded and the ICA weight matrix saved.
@@ -28,7 +28,7 @@ o	Save the data file as _ICA, incase the artefact rejection needs to be repeated
 o	Save the data file as _cleaned.
 o	These two bits can be scripted, particularly if the analysis needs to be repeated.
 
-# Analysis and Visualisation
+## Analysis and Visualisation
 5.	Run 3_ERPFigures.m
 •	This does the main epoching and analysis steps.
 •	The cleaned data is loaded and analysis (sub)epochs are computed using EEGLAB (-200 to 800ms pre-stimulus-offset). Baseline correction is carried out (-200 to 0s pre-stimulus-offset). The data for each epoch is saved so it does not need to be recomputed each time the script is run (after running the first time, change to ‘computeEpochs = 0’).
@@ -41,7 +41,7 @@ o	The baseline period can be amended, but should match the artefact rejection pe
 o	After computing CSD, change the ‘mostRecentFile’ to the name of the exported file – AllERP_csd_[date of export].mat
 o	Electrodes for plotting and exports can be specified in selectedElectrode. If multiple electrodes are specified, these will be averaged.
 
-# Exporting the data for statistical analysis
+## Exporting the data for statistical analysis
 6.	Run 4_BigExport.m
 •	The previous step generates one export per electrode/cluster and time point. To create one large file, run this, specifying the folderPath where the exports are located. The script will find all export files and combine them into one large table with subheadings of electrode number and time window based on the export file name.
 7.	Proceed to statistical analysis
