@@ -46,4 +46,5 @@ Electrodes for plotting and exports can be specified in selectedElectrode. If mu
 6.	Run 4_BigExport.m  
 
 The previous step generates one export per electrode/cluster and time point. To create one large file, run this, specifying the folderPath where the exports are located. The script will find all export files and combine them into one large table with subheadings of electrode number and time window based on the export file name.  
+
 7.	Proceed to statistical analysis
