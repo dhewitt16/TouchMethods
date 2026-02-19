@@ -11,8 +11,10 @@ o	Change the directories for EEGLAB and the data directory to match those on the
 o	If there are any issues with the script, run EEGLAB first
 
 ## Data cleaning
-3.	Run 2_AddICAWeights.m. 
-This presumes that the ERD analysis has been run already. If not, or if different decomposition is required, uncomment to add the ICA step in the previous script. The script loads the set file from the ERD analysis after ICA decomposition. The files are loaded and the ICA weight matrix saved.
+3.	Run 2_AddICAWeights.m  
+
+This presumes that the ERD analysis has been run already. If not, or if different decomposition is required, uncomment to add the ICA step in the previous script. 
+- The script loads the set file from the ERD analysis after ICA decomposition. The files are loaded and the ICA weight matrix saved.  
 The ICA weight matrix for each participant is loaded onto the ERP file from the previous step. This file is then saved for subsequent processing. All ERD set files must be stored in a directory within the current directory (cfg.dir) called SetFiles (i.e., not within subject folders – search for the name and copy them here first). Change the directories for EEGLAB and the data directory to match those on the computer being used
 4.	Data cleaning
 •	Load each data file individually.
